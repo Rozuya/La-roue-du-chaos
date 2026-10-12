@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RØZUYA — La roue du chaos</title>
+<meta name="theme-color" content="#120b20">
+<style>
+:root{--bg:#0d0913;--panel:#171020;--panel2:#21152e;--purple:#9147ff;--pink:#e35bff;--text:#f8f4ff;--muted:#b7a9c9;--line:#39264c;--good:#b99aff}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at top,#241039 0%,var(--bg) 54%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;min-height:100vh}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.top{max-width:1240px;margin:auto;padding:28px 22px 10px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{font-weight:900;letter-spacing:.11em;font-size:13px;color:#d9c1ff}.brand span{color:var(--purple)}
+h1{font-size:clamp(28px,4vw,43px);line-height:1.04;margin:7px 0 0;font-weight:900;letter-spacing:-.04em}
+.sub{color:var(--muted);margin:10px 0 0;font-size:14px}
+.pill{border:1px solid #57327b;background:#231334;color:#e6d6ff;border-radius:999px;padding:9px 13px;font-size:12px;font-weight:800;white-space:nowrap}
+.layout{max-width:1240px;margin:20px auto 40px;padding:0 22px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr);gap:20px;align-items:start}
+.panel{background:linear-gradient(145deg,rgba(31,21,44,.97),rgba(19,13,27,.97));border:1px solid var(--line);border-radius:22px;box-shadow:0 18px 55px #0005;overflow:hidden}
+.wheel-panel{padding:22px;display:flex;flex-direction:column;align-items:center}
+.wheel-wrap{position:relative;width:min(100%,590px);aspect-ratio:1;margin:6px auto 18px;display:grid;place-items:center}
+canvas{width:100%;height:100%;filter:drop-shadow(0 14px 25px #0007)}
+.pointer{position:absolute;z-index:2;top:-1px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-top:38px solid #fff;filter:drop-shadow(0 4px 5px #0009)}
+.spin{border:0;border-radius:14px;padding:16px 34px;background:linear-gradient(120deg,#9147ff,#b44dff 60%,#ed5bdf);color:white;font-size:16px;font-weight:900;letter-spacing:.04em;box-shadow:0 7px 24px #9147ff55;transition:transform .15s,opacity .15s}
+.spin:hover{transform:translateY(-2px)}.spin:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.hint{color:var(--muted);font-size:12px;text-align:center;margin:12px 0 0}
+.side{display:flex;flex-direction:column;gap:16px}
+.section{padding:20px}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+h2{font-size:17px;margin:0;letter-spacing:-.02em}
+.count{color:var(--muted);font-size:12px}
+.field-label{display:block;font-size:12px;font-weight:800;color:#d8c8ec;margin:13px 0 7px}
+input[type=text],textarea{width:100%;border:1px solid #463255;background:#100b17;color:var(--text);border-radius:11px;padding:11px 12px;outline:none}
+input:focus,textarea:focus{border-color:var(--purple);box-shadow:0 0 0 3px #9147ff22}
+textarea{resize:vertical;min-height:68px}
+.add-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{border:1px solid #493259;background:#2a1a3a;color:#f5eaff;border-radius:10px;padding:10px 12px;font-weight:800;font-size:13px}
+.btn:hover{border-color:#9862d9}.btn.primary{background:#9147ff;border-color:#9147ff;color:#fff}.btn.danger{color:#ffb6d1;border-color:#683049;background:#301725}.btn.small{padding:7px 9px;font-size:12px}
+.checkrow{display:flex;gap:10px;align-items:flex-start;margin-top:15px;color:#e5d9f1;font-size:13px;line-height:1.4}
+input[type=checkbox]{accent-color:var(--purple);margin-top:3px;width:16px;height:16px}
+.entries{display:flex;flex-direction:column;gap:8px;max-height:380px;overflow:auto;padding-right:3px}
+.entry{display:grid;grid-template-columns:30px 1fr auto;gap:9px;align-items:center;border:1px solid #342341;background:#120d19;border-radius:12px;padding:10px}
+.num{width:28px;height:28px;border-radius:8px;background:#322044;color:#d9c2ff;display:grid;place-items:center;font-size:11px;font-weight:900}
+.entry-title{font-size:13px;font-weight:850;overflow-wrap:anywhere}.entry-desc{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.35;overflow-wrap:anywhere}
+.remove{border:0;background:transparent;color:#cbb9dc;border-radius:8px;padding:8px;font-size:18px}.remove:hover{background:#3a1b31;color:#ff9fc2}
+.empty{color:var(--muted);font-size:13px;text-align:center;padding:22px 8px;border:1px dashed #493259;border-radius:12px}
+.footer-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.note{font-size:11px;color:var(--muted);line-height:1.5;margin:13px 0 0}
+.overlay{position:fixed;inset:0;z-index:10;background:#08040dcc;backdrop-filter:blur(9px);display:none;align-items:center;justify-content:center;padding:18px}
+.overlay.show{display:flex}
+.modal{width:min(100%,530px);border-radius:24px;border:1px solid #7044a0;background:radial-gradient(ellipse at top,#34204a,#171020 65%);box-shadow:0 25px 100px #000b;padding:28px;text-align:center;position:relative;animation:pop .22s ease-out}
+@keyframes pop{from{transform:translateY(12px) scale(.96);opacity:0}to{transform:none;opacity:1}}
+.modal-kicker{color:#c4a0ff;font-weight:900;letter-spacing:.17em;font-size:11px;text-transform:uppercase}
+.modal-number{width:54px;height:54px;margin:17px auto 12px;border-radius:16px;background:#9147ff;color:white;display:grid;place-items:center;font-size:18px;font-weight:950;box-shadow:0 0 35px #9147ff55}
+.modal h2{font-size:clamp(23px,4vw,32px);line-height:1.15;margin:0 0 13px}
+.modal p{color:#e5d9f2;font-size:15px;line-height:1.65;margin:0 auto 22px;white-space:pre-wrap;overflow-wrap:anywhere}
+.modal-actions{display:flex;justify-content:center;gap:9px;flex-wrap:wrap}
+.close-x{position:absolute;right:12px;top:12px;width:34px;height:34px;border:1px solid #4c355f;background:#21152e;color:white;border-radius:10px;font-size:20px}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#21152e;border:1px solid #624183;padding:11px 16px;border-radius:12px;color:#f5eaff;font-size:13px;display:none;z-index:20;box-shadow:0 8px 30px #0007}
+.toast.show{display:block}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.wheel-wrap{width:min(100%,520px)}.top{align-items:flex-start}.pill{display:none}}
+@media(max-width:480px){.top{padding:22px 15px 8px}.layout{padding:0 12px;margin-top:12px}.wheel-panel{padding:14px}.section{padding:15px}.add-grid{grid-template-columns:1fr}.modal{padding:23px 18px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div><div class="brand">RØZUYA <span> / LIVE TOOLS</span></div><h1>La roue du chaos</h1><p class="sub">La roue décide. Le chat regarde. Bonne chance. 🎲</p></div>
+  <div class="pill">TWITCH COMMUNITY TOOL</div>
+</header>
+<main class="layout">
+  <section class="panel wheel-panel">
+    <div class="wheel-wrap"><div class="pointer"></div><canvas id="wheel" width="900" height="900" aria-label="Roue des défis"></canvas></div>
+    <button id="spin" class="spin">🎲 LANCER LA ROUE</button>
+    <p class="hint" id="wheelHint">Ajoute tes défis à droite, puis lance la roue.</p>
+  </section>
+  <aside class="side">
+    <section class="panel section">
+      <div class="section-head"><h2>Ajouter un défi</h2><span class="count">PERSONNALISABLE</span></div>
+      <label class="field-label" for="newTitle">Nom affiché sur la roue</label>
+      <input id="newTitle" type="text" maxlength="70" placeholder="Ex. Le chat prend le contrôle">
+      <label class="field-label" for="newDesc">Description affichée au tirage</label>
+      <textarea id="newDesc" maxlength="500" placeholder="Explique ce que tu dois faire..."></textarea>
+      <div class="add-grid" style="margin-top:12px"><button class="btn primary" id="add">＋ Ajouter à la roue</button><button class="btn" id="clearFields">Effacer les champs</button></div>
+      <label class="checkrow"><input id="removeAfter" type="checkbox"><span><strong>Retirer le défi après le tirage</strong><br>Le défi tiré est supprimé de la roue, jusqu'à ce que tu le rajoutes.</span></label>
+    </section>
+    <section class="panel section">
+      <div class="section-head"><h2>Les défis de la roue</h2><span class="count" id="count">0 défi</span></div>
+      <div id="entries" class="entries"></div>
+      <div class="footer-actions"><button class="btn" id="restore">↻ Remettre les défis de départ</button><button class="btn danger" id="clearAll">Tout supprimer</button></div>
+      <p class="note">Astuce : le nom reste court sur la roue, tandis que la description complète apparaît dans la fenêtre après le tirage. Les changements sont sauvegardés dans ce navigateur.</p>
+    </section>
+  </aside>
+</main>
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <button class="close-x" id="closeX" aria-label="Fermer la fenêtre">×</button>
+    <div class="modal-kicker">LE DESTIN A CHOISI</div>
+    <div class="modal-number" id="modalNumber">01</div>
+    <h2 id="modalTitle">Le chat prend le contrôle</h2>
+    <p id="modalDesc"></p>
+    <div class="modal-actions"><button class="btn primary" id="closeModal">Fermer</button><button class="btn" id="spinAgain">Relancer la roue</button></div>
+  </div>
+</div>
+<div class="overlay" id="resetOverlay" role="dialog" aria-modal="true" aria-labelledby="resetTitle">
+  <div class="modal">
+    <button class="close-x" id="cancelResetX" aria-label="Fermer la fenêtre">×</button>
+    <div class="modal-kicker">RØZUYA · RÉINITIALISATION</div>
+    <div class="modal-number">↻</div>
+    <h2 id="resetTitle">Remettre les défis de départ ?</h2>
+    <p>Les 12 défis de départ vont être remis dans la roue. Ta liste actuelle sera remplacée.</p>
+    <div class="modal-actions">
+      <button class="btn" id="cancelReset">Annuler</button>
+      <button class="btn primary" id="confirmReset">Oui, tout remettre</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(() => {
+ const defaults = [
+  {title:"LE CHAT PREND LE CONTRÔLE",desc:"Le chat vote pour ma stratégie pendant la prochaine manche."},
+  {title:"PICK IMPOSÉ",desc:"Le chat choisit mon personnage, mon arme, mon champion ou mon équipement selon le jeu."},
+  {title:"HANDICAP IMPRÉVU",desc:"Le chat m'impose une contrainte concrète pour la prochaine manche."},
+  {title:"DÉFI CHRONO",desc:"Je dois réussir un objectif donné par le chat en 5 minutes."},
+  {title:"FULL RANDOM",desc:"Je joue avec un choix aléatoire : personnage, équipement, mode ou map."},
+  {title:"INTERDIT DE CONFORT",desc:"Je dois me passer d'une capacité ou d'un outil que j'utilise habituellement pendant une manche."},
+  {title:"COACH DU CHAT",desc:"Pendant 3 minutes, je dois suivre les conseils choisis par le chat."},
+  {title:"COMMENTATEUR E-SPORT",desc:"Je commente ma prochaine manche comme si je jouais une finale mondiale."},
+  {title:"UNE SEULE CHANCE",desc:"Je dois réussir le prochain objectif en une tentative. Si j'échoue, je prends un handicap supplémentaire."},
+  {title:"DÉFI DU VIEWER",desc:"Le viewer qui a déclenché la roue me propose un défi raisonnable. Je peux refuser une seule fois si c'est impossible."},
+  {title:"DUEL DU CHAT",desc:"Je défie un viewer si le jeu le permet. Sinon, le chat choisit un objectif à battre."},
+  {title:"DOUBLE CHAOS",desc:"Je relance la roue et dois réaliser les deux défis tirés, à condition qu'ils soient compatibles."}
+ ];
+ const $ = id => document.getElementById(id);
+ const storageKey = "rozuya-chaos-wheel-v1";
+ let items = defaults.map(x=>({...x,id:crypto.randomUUID?.()||String(Math.random())}));
+ let rotation = 0, spinning = false, lastPicked = null;
+ try { const saved = JSON.parse(localStorage.getItem(storageKey)); if(Array.isArray(saved?.items)) items=saved.items; } catch(e){}
+ const wheel=$("wheel"), ctx=wheel.getContext("2d");
+ const colors=["#9147ff","#3a2055","#b65cff","#251332","#7135b7","#49205f","#d45bff","#30203d"];
+ function save(){try{localStorage.setItem(storageKey,JSON.stringify({items}));}catch(e){}}
+ function draw(){
+  const w=wheel.width,cx=w/2,cy=w/2,r=w*.455;ctx.clearRect(0,0,w,w);
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(rotation);
+  if(!items.length){ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fillStyle="#241632";ctx.fill();ctx.strokeStyle="#8e54ce";ctx.lineWidth=5;ctx.stroke();ctx.fillStyle="#c8b1df";ctx.textAlign="center";ctx.font="bold 32px system-ui";ctx.fillText("AJOUTE DES DÉFIS",0,0);ctx.restore();return;}
+  const step=Math.PI*2/items.length;
+  items.forEach((it,i)=>{
+   const start=-Math.PI/2+i*step,end=start+step;
+   ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,r,start,end);ctx.closePath();ctx.fillStyle=colors[i%colors.length];ctx.fill();ctx.strokeStyle="#0d0913";ctx.lineWidth=5;ctx.stroke();
+   ctx.save();ctx.rotate(start+step/2);ctx.textAlign="right";ctx.textBaseline="middle";ctx.fillStyle="#fff";ctx.shadowColor="#0008";ctx.shadowBlur=3;
+   const maxChars=items.length>12?13:18;let title=it.title.toUpperCase();if(title.length>maxChars)title=title.slice(0,maxChars-1)+"…";
+   ctx.font=`900 ${items.length>14?19:items.length>9?22:26}px system-ui`;ctx.fillText(title,r-27,0);ctx.restore();
+  });
+  ctx.beginPath();ctx.arc(0,0,r*.17,0,Math.PI*2);ctx.fillStyle="#110b19";ctx.fill();ctx.strokeStyle="#d7baff";ctx.lineWidth=8;ctx.stroke();
+  ctx.fillStyle="#fff";ctx.textAlign="center";ctx.textBaseline="middle";ctx.font="900 31px system-ui";ctx.fillText("RØ",0,0);
+  ctx.restore();
+ }
+ function renderEntries(){
+  $("count").textContent=`${items.length} ${items.length===1?"défi":"défis"}`;
+  $("entries").innerHTML="";
+  if(!items.length){$("entries").innerHTML='<div class="empty">La roue est vide. Ajoute un défi juste au-dessus.</div>'; }
+  items.forEach((it,i)=>{
+   const row=document.createElement("div");row.className="entry";
+   const num=document.createElement("div");num.className="num";num.textContent=String(i+1).padStart(2,"0");
+   const content=document.createElement("div");const title=document.createElement("div");title.className="entry-title";title.textContent=it.title;const desc=document.createElement("div");desc.className="entry-desc";desc.textContent=it.desc||"Aucune description.";content.append(title,desc);
+   const del=document.createElement("button");del.className="remove";del.title="Supprimer ce défi";del.setAttribute("aria-label","Supprimer "+it.title);del.textContent="×";del.onclick=()=>{items.splice(i,1);save();renderEntries();draw();};
+   row.append(num,content,del);$("entries").append(row);
+  });
+  $("spin").disabled=spinning||items.length<2;
+  $("wheelHint").textContent=items.length<2?"Ajoute au moins 2 défis pour lancer la roue.":`${items.length} défis dans la roue · Bonne chance !`;
+ }
+ function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200);}
+ function addItem(title,desc){title=title.trim();desc=desc.trim();if(!title){toast("Écris d'abord le nom du défi.");$("newTitle").focus();return;}items.push({id:Date.now()+"-"+Math.random(),title,desc});save();renderEntries();draw();$("newTitle").value="";$("newDesc").value="";$("newTitle").focus();toast("Défi ajouté à la roue !");}
+ $("add").onclick=()=>addItem($("newTitle").value,$("newDesc").value);
+ $("newTitle").addEventListener("keydown",e=>{if(e.key==="Enter"){$("newDesc").focus();}});
+ $("clearFields").onclick=()=>{$("newTitle").value="";$("newDesc").value="";$("newTitle").focus();};
+ $("clearAll").onclick=()=>{if(!confirm("Supprimer tous les défis de la roue ?"))return;items=[];save();renderEntries();draw();};
+ function openResetPopup(){$("resetOverlay").classList.add("show");}
+ function closeResetPopup(){$("resetOverlay").classList.remove("show");}
+ $("restore").onclick=openResetPopup;
+ $("cancelReset").onclick=closeResetPopup;
+ $("cancelResetX").onclick=closeResetPopup;
+ $("resetOverlay").addEventListener("click",e=>{if(e.target===$("resetOverlay"))closeResetPopup();});
+ $("confirmReset").onclick=()=>{items=defaults.map((x,i)=>({...x,id:Date.now()+"-"+i}));save();renderEntries();draw();closeResetPopup();toast("Les 12 défis de départ sont de retour !");};
+
+ function closePopup(){$("overlay").classList.remove("show");}
+ $("closeModal").onclick=closePopup;$("closeX").onclick=closePopup;
+ $("overlay").addEventListener("click",e=>{if(e.target===$("overlay"))closePopup();});
+ document.addEventListener("keydown",e=>{if(e.key==="Escape"){closePopup();closeResetPopup();}});
+ $("spinAgain").onclick=()=>{closePopup();spin();};
+ function spin(){
+  if(spinning||items.length<2)return;
+  spinning=true;$("spin").disabled=true;
+  const chosenIndex=Math.floor(Math.random()*items.length),step=Math.PI*2/items.length;
+  // Pointer is at -90 degrees. Rotate the chosen segment center under the pointer.
+  const currentNorm=((rotation%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+  const targetNorm=((Math.PI*2-(chosenIndex+.5)*step)%(Math.PI*2));
+  let delta=(targetNorm-currentNorm+Math.PI*2)%(Math.PI*2);
+  delta+=Math.PI*2*(5+Math.floor(Math.random()*3));
+  const start=rotation,finish=rotation+delta,duration=4800+Math.random()*700,startTime=performance.now();
+  function frame(now){
+   const t=Math.min(1,(now-startTime)/duration),ease=1-Math.pow(1-t,5);
+   rotation=start+(finish-start)*ease;draw();
+   if(t<1){requestAnimationFrame(frame);return;}
+   rotation=((rotation%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+   const picked=items[chosenIndex];lastPicked=picked;spinning=false;
+   $("modalNumber").textContent=String(chosenIndex+1).padStart(2,"0");
+   $("modalTitle").textContent=picked.title;
+   $("modalDesc").textContent=picked.desc||"Aucune description pour ce défi.";
+   $("overlay").classList.add("show");
+   if($("removeAfter").checked){items.splice(chosenIndex,1);save();renderEntries();draw();}
+   else renderEntries();
+  }
+  requestAnimationFrame(frame);
+ }
+ $("spin").onclick=spin;
+ draw();renderEntries();
+})();
+</script>
+</body>
+</html>
